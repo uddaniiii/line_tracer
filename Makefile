@@ -1,21 +1,26 @@
+# 컴파일러와 플래그
 CC = g++
-CFLAGS = -g -Wall
-CFLAGS += `pkg-config opencv4 --cflags --libs`
-CFLAGS += -I/usr/local/include/dynamixel_sdk_cpp #헤더파일경로 지정
-CFLAGS += -ldxl_x64_cpp #라이브러리파일 지정,+=는 이전 설정값에 추가하라는 의미
-SRCS = main.cpp
+CFLAGS = -g -Wall `pkg-config opencv4 --cflags --libs` -I/usr/local/include/dynamixel_sdk_cpp -ldxl_x64_cpp
+
+# 파일 설정
+SRC_DIR = src
+BUILD_DIR = build
+SRCS = $(SRC_DIR)/main.cpp $(SRC_DIR)/dxl.cpp
+OBJS = $(SRCS:$(SRC_DIR)/%.cpp=$(BUILD_DIR)/%.o)
 TARGET = lt
-OBJS = main.o dxl.o
-$(TARGET):$(SRCS)
-	   $(CC) -o $(TARGET) $(SRCS) $(CFLAGS)
-$(TARGET) : $(OBJS)
-	   $(CC) $(CFLAGS) -o $(TARGET) $(OBJS) $(CFLAGS)
-main.o : main.cpp
-	   $(CC) $(CFLAGS) -c main.cpp $(CFLAGS)
-dxl.o : dxl.hpp dxl.cpp
-	   $(CC) $(CFLAGS) -c dxl.cpp $(CFLAGS)    
-.PHONY: all clean
+
+# 기본 타겟
 all: $(TARGET)
+
+# 실행 파일 빌드
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $^
+
+# 오브젝트 파일 빌드
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
+	mkdir -p $(BUILD_DIR) 
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# 정리
 clean:
-	   rm -f $(OBJS) $(TARGET) 
-	   rm -rf $(TARGET) $(OBJS)
+	rm -rf $(BUILD_DIR) $(TARGET)
